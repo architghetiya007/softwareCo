@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ApiBody, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ListRequestDto, LoginRequestDto, SignupRequestDto } from './dto/request.dto';
 import { BaseFailResponse } from 'src/utils/common.dto';
 import { SignupResponse } from './dto/response.dto';
+import { UserAuthGuard } from 'src/auth/user-auth.guard';
 
 @Controller('user')
 @ApiTags('User')
@@ -53,6 +54,33 @@ export class UserController {
   })
   login(@Body() body: LoginRequestDto) {
     return this.userService.login(body);
+  }
+
+  @Post('check-having-module-access/:moduleId')
+  @ApiBearerAuth("jwt")
+	@UseGuards(UserAuthGuard)
+  @ApiOperation({
+    summary: 'Login',
+    description: 'Login',
+    tags: ['POST']
+  })
+	@ApiParam({
+		name: "moduleId",
+		required: true,
+		schema: {
+			type: "string",
+		},
+	})
+  @ApiOkResponse({
+    type: LoginRequestDto,
+    description: 'Login successfully'
+  })
+  @ApiInternalServerErrorResponse({
+    type: BaseFailResponse,
+    description: 'Internal server error'
+  })
+  checkHavingAccess(@Param('moduleId') moduleId : string) {
+    return this.userService.checkHavingAccess(moduleId);
   }
 
 

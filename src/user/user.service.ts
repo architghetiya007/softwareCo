@@ -5,20 +5,20 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './entities/user.entity';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import {
   ListRequestDto,
   LoginRequestDto,
   SignupRequestDto,
 } from './dto/request.dto';
-import { AuthService } from 'src/auth/auth.service';
+import { UserAuthService } from 'src/auth/user-auth.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
-    private readonly authService: AuthService,
+    private userAuthService : UserAuthService
   ) {}
   async create(body: SignupRequestDto) {
     try {
@@ -38,7 +38,7 @@ export class UserService {
         password: body.password,
         role: body.role,
       });
-      const token = await this.authService.generateJwtToken({
+      const token = await this.userAuthService.signToken({
         userId: user._id,
         role: user.role,
       });
@@ -73,9 +73,10 @@ export class UserService {
           message: 'Invalid credentials',
         });
       }
-      const token = await this.authService.generateJwtToken({
+
+      const token = await this.userAuthService.signToken({
         userId: user._id,
-        role: user.role,
+        version: Date.now(),
       });
       return {
         status: true,
@@ -89,6 +90,48 @@ export class UserService {
         status: false,
         message: 'Internal server error',
       });
+    }
+  }
+
+  async checkHavingAccess(moduleId:string) {
+    try {
+      let havingAccess = await this.userModel.aggregate([
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId('6674524f5653eb8bb6c06b1c')
+          }
+        }, 
+        {
+          $lookup: {
+            from: 'Role', 
+            localField: 'role', 
+            foreignField: '_id', 
+            as: 'roles'
+          }
+        }, 
+        {
+          $unwind: {
+            path: '$roles', 
+            preserveNullAndEmptyArrays: true
+          }
+        }, 
+        {
+          $unwind: {
+            path: '$roles.accessModules', 
+            preserveNullAndEmptyArrays: true
+          }
+        }, 
+        {
+          $match: {
+            'roles.accessModules.module': new mongoose.Types.ObjectId('66744d2452e527aafee7dfad')
+          }
+        }
+      ])
+    } catch (error) {
+      throw new InternalServerErrorException({
+        status : true, 
+        message : 'Internal server error'
+      })
     }
   }
 
