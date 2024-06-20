@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBody, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { LoginRequestDto, SignupRequestDto } from './dto/request.dto';
+import { ListRequestDto, LoginRequestDto, SignupRequestDto } from './dto/request.dto';
 import { BaseFailResponse } from 'src/utils/common.dto';
 import { SignupResponse } from './dto/response.dto';
 
@@ -53,6 +53,29 @@ export class UserController {
   })
   login(@Body() body: LoginRequestDto) {
     return this.userService.login(body);
+  }
+
+
+  @Post('list')
+  @ApiOperation({
+    summary: 'User List',
+    description: 'User List',
+    tags: ['POST']
+  })
+  @ApiBody({
+    type: ListRequestDto,
+    required: true
+  })
+  @ApiOkResponse({
+    type: ListRequestDto,
+    description: 'List successfully'
+  })
+  @ApiInternalServerErrorResponse({
+    type: BaseFailResponse,
+    description: 'Internal server error'
+  })
+  list(@Body() body: ListRequestDto) {
+    return this.userService.list(body);
   }
 
   @Get()
