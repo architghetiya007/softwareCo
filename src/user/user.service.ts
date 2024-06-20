@@ -21,7 +21,7 @@ export class UserService {
         })
       }
 
-      user = await this.userModel.create({ email: body.email, fullName: body.fullName, password: body.password, role: body.role}); 
+      user = await this.userModel.create({ firstName: body.firstName, lastName: body.lastName,  email: body.email, fullName: body.fullName, password: body.password, role: body.role}); 
 
       return { 
         status : true, 
