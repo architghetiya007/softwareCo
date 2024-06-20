@@ -93,12 +93,13 @@ export class UserService {
     }
   }
 
-  async checkHavingAccess(moduleId:string) {
+  async checkHavingAccess(userId: any , moduleId:string) {
     try {
+      console.log(userId, moduleId,'......')
       let havingAccess = await this.userModel.aggregate([
         {
           $match: {
-            _id: new mongoose.Types.ObjectId('6674524f5653eb8bb6c06b1c')
+            _id: new mongoose.Types.ObjectId(userId)
           }
         }, 
         {
@@ -123,10 +124,16 @@ export class UserService {
         }, 
         {
           $match: {
-            'roles.accessModules.module': new mongoose.Types.ObjectId('66744d2452e527aafee7dfad')
+            'roles.accessModules.module': new mongoose.Types.ObjectId(moduleId)
           }
         }
       ])
+
+      return { 
+        status : true, 
+        message :"Here you can check user having a access or not", 
+        isAccess : havingAccess.length ? true : false
+      }
     } catch (error) {
       throw new InternalServerErrorException({
         status : true, 
@@ -147,7 +154,9 @@ export class UserService {
       }
       let users = await this.userModel
         .find(query)
-        .populate({ path: 'role', select: 'name accessModules' });
+        .populate({ path: 'role', select: 'name accessModules', populate : {
+          path : 'accessModules.module', select : 'name'
+        } });
       return {
         users: users,
       };
@@ -158,21 +167,5 @@ export class UserService {
         message: 'Internal server error',
       });
     }
-  }
-
-  findAll() {
-    return `This action returns all user`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: any) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
   }
 }
