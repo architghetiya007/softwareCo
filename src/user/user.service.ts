@@ -10,6 +10,8 @@ import {
   ListRequestDto,
   LoginRequestDto,
   SignupRequestDto,
+  UpdateDynamicRequest,
+  UpdateManyUsersRequest,
 } from './dto/request.dto';
 import { UserAuthService } from 'src/auth/user-auth.service';
 
@@ -168,4 +170,49 @@ export class UserService {
       });
     }
   }
+
+  async updateManyUser(body : UpdateManyUsersRequest) {
+    try {
+        await this.userModel.updateMany({}, { lastName : body.lastName});
+        return {
+          status : true, 
+          message : 'users last name changes'
+        }
+    } catch (error) {
+      throw new InternalServerErrorException({
+        status : false, 
+        message : 'Internal server error'
+      })
+    }
+  }
+
+  async updateDynamic(body : [UpdateDynamicRequest]) {
+    try {
+        for (let i = 0; i < body.length; i++) {
+          const element = body[i];
+          let updateData = {};
+          if(element.hasOwnProperty("firstName")) {
+            updateData['firstName'] = element?.firstName
+          }
+          if(element.hasOwnProperty("lastName")) {
+            updateData['lastName'] = element?.lastName
+          }
+          if(element.hasOwnProperty("fullName")) {
+            updateData['fullName'] = element?.fullName
+          }
+          await this.userModel.updateOne({ _id : new mongoose.Types.ObjectId(element._id)}, updateData);
+        }
+        return {
+          status : true, 
+          message : 'Update data'
+        }
+    } catch (error) {
+      throw new InternalServerErrorException({
+        status : false, 
+        message : 'Internal server error'
+      })
+    }
+  }
+
+  
 }

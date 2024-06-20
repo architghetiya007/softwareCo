@@ -74,3 +74,42 @@ export class ListRequestDto {
     @IsString()
     search : string;
 }
+
+export class UpdateManyUsersRequest { 
+    @ApiProperty({
+        type : String
+    })
+    @IsNotEmpty()
+    @IsString()
+    lastName : string;
+}
+
+export class UpdateDynamicRequest {
+    @ApiProperty({
+        type: String
+    })
+    @IsNotEmpty()
+    @IsString()
+    _id : string
+
+    @ApiProperty({
+        type: String
+    })
+    @IsOptional()
+    @IsString()
+    firstName : string
+
+    @ApiProperty({
+        type: String
+    })
+    @IsOptional()
+    @IsString()
+    lastName : string
+
+    @ApiProperty({
+        type: String
+    })
+    @IsOptional()
+    @IsString()
+    fullName : string
+}

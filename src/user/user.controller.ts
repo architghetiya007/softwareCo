@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Put } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiBody, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { ListRequestDto, LoginRequestDto, SignupRequestDto } from './dto/request.dto';
-import { BaseFailResponse } from 'src/utils/common.dto';
+import { ListRequestDto, LoginRequestDto, SignupRequestDto, UpdateDynamicRequest, UpdateManyUsersRequest } from './dto/request.dto';
+import { BaseFailResponse, BaseSuccessResponse } from 'src/utils/common.dto';
 import { SignupResponse } from './dto/response.dto';
 import { UserAuthGuard } from 'src/auth/user-auth.guard';
 import { UserDocument } from './entities/user.entity';
@@ -96,7 +96,7 @@ export class UserController {
     required: true
   })
   @ApiOkResponse({
-    type: ListRequestDto,
+    type: BaseSuccessResponse,
     description: 'List successfully'
   })
   @ApiInternalServerErrorResponse({
@@ -105,5 +105,49 @@ export class UserController {
   })
   list(@Body() body: ListRequestDto) {
     return this.userService.list(body);
+  }
+
+  @Put('update-many-user')
+  @ApiOperation({
+    summary: 'Update many user',
+    description: 'Update many user',
+    tags: ['POST']
+  })
+  @ApiBody({
+    type: UpdateManyUsersRequest,
+    required: true
+  })
+  @ApiOkResponse({
+    type: BaseSuccessResponse,
+    description: 'Updated'
+  })
+  @ApiInternalServerErrorResponse({
+    type: BaseFailResponse,
+    description: 'Internal server error'
+  })
+  updateManyUser(@Body() body: UpdateManyUsersRequest) {
+    return this.userService.updateManyUser(body);
+  }
+
+  @Put('update-dynamic')
+  @ApiOperation({
+    summary: 'Update Dynamic',
+    description: 'Update Dynamic',
+    tags: ['POST']
+  })
+  @ApiBody({
+    type: [UpdateDynamicRequest],
+    required: true
+  })
+  @ApiOkResponse({
+    type: BaseSuccessResponse,
+    description: 'Updated'
+  })
+  @ApiInternalServerErrorResponse({
+    type: BaseFailResponse,
+    description: 'Internal server error'
+  })
+  updateDynamic(@Body() body: [UpdateDynamicRequest]) {
+    return this.userService.updateDynamic(body);
   }
 }
