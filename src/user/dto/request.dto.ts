@@ -47,3 +47,22 @@ export class SignupRequestDto {
     @IsString()
     role : string;
 }
+
+
+export class LoginRequestDto { 
+
+    @ApiProperty({
+        type: String
+    })
+    @IsNotEmpty()
+    @IsString()
+    @IsEmail()
+    email : string;
+
+    @ApiProperty({
+        type: String
+    })
+    @IsNotEmpty()
+    @IsString()
+    password : string;
+}

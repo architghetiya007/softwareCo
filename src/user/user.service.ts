@@ -1,39 +1,90 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './entities/user.entity';
 import { Model } from 'mongoose';
-import { SignupRequestDto } from './dto/request.dto';
-
+import { LoginRequestDto, SignupRequestDto } from './dto/request.dto';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name)
-    private userModel : Model<UserDocument>
+    private userModel: Model<UserDocument>,
+    private readonly authService: AuthService,
   ) {}
   async create(body: SignupRequestDto) {
     try {
-      let user = await this.userModel.findOne({ email : body.email});
-      if(user) { 
+      let user = await this.userModel.findOne({ email: body.email });
+      if (user) {
         throw new BadRequestException({
-          status : false, 
-          message : 'User already present'
-        })
+          status: false,
+          message: 'User already present',
+        });
       }
 
-      user = await this.userModel.create({ firstName: body.firstName, lastName: body.lastName,  email: body.email, fullName: body.fullName, password: body.password, role: body.role}); 
-
-      return { 
-        status : true, 
-        message : 'User signup successfully', 
-        data : user
-      }
+      user = await this.userModel.create({
+        firstName: body.firstName,
+        lastName: body.lastName,
+        email: body.email,
+        fullName: body.fullName,
+        password: body.password,
+        role: body.role,
+      });
+      const token = await this.authService.generateJwtToken({
+        userId: user._id,
+        role: user.role,
+      });
+      return {
+        status: true,
+        message: 'User signup successfully',
+        data: user,
+        token,
+      };
     } catch (error) {
-      console.log(error,'error')
+      console.log(error, 'error');
       throw new InternalServerErrorException({
-        status: false, 
-        message : 'Internal server error'
-      })
+        status: false,
+        message: 'Internal server error',
+      });
+    }
+  }
+
+  async login(body: LoginRequestDto) {
+    try {
+      let user = await this.userModel.findOne({ email: body.email });
+      if (!user) {
+        throw new BadRequestException({
+          status: false,
+          message: 'Invalid credentials',
+        });
+      }
+
+      if (user.password != body.password) {
+        throw new BadRequestException({
+          status: false,
+          message: 'Invalid credentials',
+        });
+      }
+      const token = await this.authService.generateJwtToken({
+        userId: user._id,
+        role: user.role,
+      });
+      return {
+        status: true,
+        message: 'User signup successfully',
+        data: user,
+        token,
+      };
+    } catch (error) {
+      console.log(error, 'error');
+      throw new InternalServerErrorException({
+        status: false,
+        message: 'Internal server error',
+      });
     }
   }
 
